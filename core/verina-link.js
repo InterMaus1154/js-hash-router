@@ -6,7 +6,8 @@ class VerinaLink extends HTMLAnchorElement{
     constructor() {
         super();
 
-        const href = this.href;
+        this.window = window;
+        let href = this.href;
         if(!href){
             console.error("----------");
             console.error(this);
@@ -15,10 +16,11 @@ class VerinaLink extends HTMLAnchorElement{
             return;
         }
 
+        href = this.getAttribute("href");
+
         this.addEventListener("click", e => {
-            e.preventDefault();
-            window.history.pushState({}, "", href);
-            window.dispatchEvent(new Event("popstate"));
+           e.preventDefault();
+           this.window.location.hash = href;
         });
     }
 }
