@@ -1,5 +1,3 @@
-
-
 export default class Router {
 
     #routes = {};
@@ -7,24 +5,25 @@ export default class Router {
     #routePattern = /[^a-zA-Z0-9/#]/;
 
     #errors = {
-        "no-router" : "No router component found. \nYou need to include a verina-router component!",
+        "no-router": "No router component found. \nYou need to include a verina-router component!",
         "no-renderer": "No verina-render component found.\nIt is required to render out content!",
         "non-unique-route": "All routes must be unique. Duplicate route detected!",
         "illegal-route": "Route contains illegal characters.",
         "empty-route": "Empty route or view found!",
-        "duplicate-index": "Only one route can be marked as index!"
+        "duplicate-index": "Only one route can be marked as index!",
+        "missing-view": "Missing view file!",
+        "invalid-route": "Page not found!"
     };
 
     constructor() {
-
         this.router = document.querySelector("verina-router");
-        if(!this.router){
+        if (!this.router) {
             this.#panic(this.#errors["no-router"]);
             return;
         }
 
         this.renderer = document.querySelector("verina-render");
-        if(!this.renderer){
+        if (!this.renderer) {
             this.#panic(this.#errors["no-renderer"]);
             return;
         }
@@ -33,8 +32,16 @@ export default class Router {
             this.#render(window.location.hash);
         });
 
-        window.addEventListener("DOMContentLoaded", ()=>{
-           this.#render(window.location.hash);
+        window.addEventListener("DOMContentLoaded", () => {
+            if (!window.location.hash) {
+                for (const [key, value] of Object.entries(this.#routes)) {
+                    if (value.index) {
+                        window.location.hash = key;
+                        break;
+                    }
+                }
+            }
+            this.#render(window.location.hash);
         });
     }
 
@@ -44,28 +51,28 @@ export default class Router {
      * @param view - relative path to project root for the corresponding view
      * @param index - false by default, set to true if page is default (/) page aka home
      */
-    register(route, view, index = false){
+    register(route, view, index = false) {
         route = route.replaceAll("#", "");
 
-        if(route.trim().length === 0 || view.trim().length === 0){
+        if (route.trim().length === 0 || view.trim().length === 0) {
             this.#panic(this.#errors["empty-route"]);
             return;
         }
 
-        if(this.#routes[route]){
+        if (this.#routes[route]) {
             this.#panic(this.#errors["non-unique-route"]);
             return;
         }
 
-        if(this.#routePattern.test(route)){
+        if (this.#routePattern.test(route)) {
             this.#panic(this.#errors["illegal-route"]);
             return;
         }
 
-        if(this.#routes && index){
-            for(const [key, value] of Object.entries(this.#routes)){
-                if(value.index){
-                    this.#panic(this.#errors["duplicate-index"], "You defined the following route as index already: "+ key);
+        if (this.#routes && index) {
+            for (const [key, value] of Object.entries(this.#routes)) {
+                if (value.index) {
+                    this.#panic(this.#errors["duplicate-index"], "You defined the following route as index already: " + key);
                     break;
                 }
             }
@@ -77,20 +84,28 @@ export default class Router {
         };
     }
 
-    #render(hash){
+    #render(hash) {
         hash = hash.replaceAll("#", "");
         const currentRoute = this.#routes[hash];
+        if (!currentRoute) {
+            return;
+        }
+
         const viewPath = "../" + currentRoute.view;
-
-
         fetch(viewPath)
-            .then(r => r.text())
             .then(r =>{
-
+                if(r.status === 404){
+                    this.#panic(this.#errors["missing-view"], "Check view for "+hash);
+                    return;
+                }
+                return r.text();
+            })
+            .then(r => {
+                this.renderer.innerHTML = r;
             });
     }
 
-    #panic(error, additionalMessage = ""){
+    #panic(error, additionalMessage = "") {
         const body = document.body;
 
         const css = document.createElement("link");
@@ -116,7 +131,7 @@ export default class Router {
      * Get the registered routes
      * @returns {{}} - object of registered routes
      */
-    get routes(){
+    get routes() {
         return this.#routes;
     }
 }
