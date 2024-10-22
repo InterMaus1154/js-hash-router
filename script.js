@@ -1,3 +1,3 @@
-import VerinaRouter from "./core/verina-router.js";
+import Router from "./core/router.js";
 
-const router = new VerinaRouter();
+const router = new Router();

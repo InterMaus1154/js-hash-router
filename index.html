@@ -4,11 +4,17 @@
     <meta charset="UTF-8">
     <title>JS Router Demo</title>
     <script src="./core/verina-link.js" type="module"></script>
-    <script src="./core/verina-router.js" type="module" defer></script>
+    <script src="./core/verina-router.js" type="module"></script>
+    <script src="core/router.js" type="module" defer></script>
     <script src="./script.js" defer type="module"></script>
 </head>
 <body>
-<a href="#home" is="verina-link">Home</a>
-<a href="#about" is="verina-link">About</a>
+<verina-router>
+    <a href="#home" is="verina-link">Home</a>
+    <a href="#about" is="verina-link">About</a>
+</verina-router>
+<verina-render>
+
+</verina-render>
 </body>
 </html>

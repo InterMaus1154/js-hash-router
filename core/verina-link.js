@@ -16,6 +16,14 @@ class VerinaLink extends HTMLAnchorElement{
             return;
         }
 
+        const parent = this.parentNode;
+        if(parent.nodeName !== "VERINA-ROUTER"){
+            console.error("----------");
+            console.error("Links must be wrapped inside a verina-router component!");
+            console.error("----------");
+            return;
+        }
+
         href = this.getAttribute("href");
 
         this.addEventListener("click", e => {
