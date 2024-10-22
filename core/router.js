@@ -7,6 +7,13 @@ export default class Router {
     #routePattern = /[^a-zA-Z0-9/#]/;
 
     constructor() {
+
+        if(!document.querySelector("verina-router")){
+            console.error("No verina-router component found!");
+            console.error("You need to define your verina-link elements in a verina-router");
+            return;
+        }
+
         window.addEventListener("hashchange", () => {
             this.#render(window.location.hash);
         });
@@ -46,6 +53,17 @@ export default class Router {
             return;
         }
 
+        if(this.#routes && index){
+            for(const [key, value] of Object.entries(this.#routes)){
+                if(value.index){
+                    console.error("You can only define one index page!");
+                    console.error("You defined the following route as index already: ");
+                    console.error(key);
+                    break;
+                }
+            }
+        }
+
         this.#routes[route] = {
             view,
             index
@@ -53,7 +71,20 @@ export default class Router {
     }
 
     #render(hash){
-        console.log(hash);
+        hash = hash.replaceAll("#", "");
+        const currentRoute = this.#routes[hash];
+        const viewPath = "../" + currentRoute.view;
+        console.log(viewPath);
+        fetch(viewPath)
+            .then(r => r.text())
+            .then(r => console.log(r));
     }
 
+    /**
+     * Get the registered routes
+     * @returns {{}} - object of registered routes
+     */
+    get routes(){
+        return this.#routes;
+    }
 }
