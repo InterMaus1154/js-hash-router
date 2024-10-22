@@ -7,8 +7,12 @@ export default class Router {
     #routePattern = /[^a-zA-Z0-9/#]/;
 
     constructor() {
-        window.addEventListener("hashchange", e => {
+        window.addEventListener("hashchange", () => {
+            this.#render(window.location.hash);
+        });
 
+        window.addEventListener("DOMContentLoaded", ()=>{
+           this.#render(window.location.hash);
         });
     }
 
@@ -48,5 +52,8 @@ export default class Router {
         };
     }
 
+    #render(hash){
+        console.log(hash);
+    }
 
 }
