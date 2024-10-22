@@ -88,6 +88,7 @@ export default class Router {
         hash = hash.replaceAll("#", "");
         const currentRoute = this.#routes[hash];
         if (!currentRoute) {
+            this.#panic(this.#errors["invalid-route"]);
             return;
         }
 
