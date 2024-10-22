@@ -6,11 +6,26 @@ export default class Router {
 
     #routePattern = /[^a-zA-Z0-9/#]/;
 
+    #errors = {
+        "no-router" : "No router component found. \nYou need to include a verina-router component!",
+        "no-renderer": "No verina-render component found.\nIt is required to render out content!",
+        "non-unique-route": "All routes must be unique. Duplicate route detected!",
+        "illegal-route": "Route contains illegal characters.",
+        "empty-route": "Empty route or view found!",
+        "duplicate-index": "Only one route can be marked as index!"
+    };
+
     constructor() {
 
-        if(!document.querySelector("verina-router")){
-            console.error("No verina-router component found!");
-            console.error("You need to define your verina-link elements in a verina-router");
+        this.router = document.querySelector("verina-router");
+        if(!this.router){
+            this.#panic(this.#errors["no-router"]);
+            return;
+        }
+
+        this.renderer = document.querySelector("verina-render");
+        if(!this.renderer){
+            this.#panic(this.#errors["no-renderer"]);
             return;
         }
 
@@ -33,32 +48,24 @@ export default class Router {
         route = route.replaceAll("#", "");
 
         if(route.trim().length === 0 || view.trim().length === 0){
-            console.error("Route or view is empty!");
-            console.error("Route:" + route);
-            console.error("View: "+ view);
-            console.error("Route and view must have non-empty values!");
+            this.#panic(this.#errors["empty-route"]);
+            return;
         }
 
         if(this.#routes[route]){
-            console.error("This route already is already registered!");
-            console.error(route);
-            console.error("All routes must be unique!");
+            this.#panic(this.#errors["non-unique-route"]);
             return;
         }
 
         if(this.#routePattern.test(route)){
-            console.error("Route contains illegal characters!");
-            console.error(route);
-            console.error("Only letters, numbers, / and # signs are allowed!");
+            this.#panic(this.#errors["illegal-route"]);
             return;
         }
 
         if(this.#routes && index){
             for(const [key, value] of Object.entries(this.#routes)){
                 if(value.index){
-                    console.error("You can only define one index page!");
-                    console.error("You defined the following route as index already: ");
-                    console.error(key);
+                    this.#panic(this.#errors["duplicate-index"], "You defined the following route as index already: "+ key);
                     break;
                 }
             }
@@ -74,10 +81,35 @@ export default class Router {
         hash = hash.replaceAll("#", "");
         const currentRoute = this.#routes[hash];
         const viewPath = "../" + currentRoute.view;
-        console.log(viewPath);
+
+
         fetch(viewPath)
             .then(r => r.text())
-            .then(r => console.log(r));
+            .then(r =>{
+
+            });
+    }
+
+    #panic(error, additionalMessage = ""){
+        const body = document.body;
+
+        const css = document.createElement("link");
+        css.rel = "stylesheet";
+        css.href = "./core/verina-style.css";
+        css.type = "text/css";
+        document.head.appendChild(css);
+
+        body.innerHTML = "";
+
+        const errorMessage = document.createElement("h1");
+        errorMessage.innerText = error;
+
+        const paragraph = document.createElement("p");
+        paragraph.innerText = additionalMessage;
+
+        body.appendChild(errorMessage);
+        body.appendChild(paragraph);
+
     }
 
     /**
